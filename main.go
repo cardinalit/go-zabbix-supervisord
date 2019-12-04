@@ -21,6 +21,16 @@ func main() {
 	state, _ := supervisor.GetState()
 	if state.Code != supervisord.StateCodeRunning {
 		fmt.Println("supervisor is not running or the path to the socket is incorrect!")
-		os.Exit(0)
+		os.Exit(1)
+	}
+
+	processList, err := supervisor.GetAllProcessInfo()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	for _, process := range processList {
+		fmt.Println("State: ", process.State, " Name: ", process.Name, " ExitStatus: ", process.ExitStatus, " Group: ",
+			process.ExitStatus)
 	}
 }
