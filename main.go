@@ -1,11 +1,22 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/abrander/go-supervisord"
 	"os"
 )
+
+type ZabbixJsonFormat struct {
+	Data 	[]*SupervisorProcess	`json:"data"`
+}
+
+type SupervisorProcess struct {
+	ProcessName		string			`json:"{#PROCESS.NAME}"`
+	ProcessGroup	string			`json:"{#PROCESS.GROUP}"`
+	ProcessPID		int				`json:"{#PROCESS.PID}"`
+}
 
 var SupervisordSock = "/tmp/supervisor.sock"
 
@@ -29,8 +40,21 @@ func main() {
 		panic(err.Error())
 	}
 
+	toZabbix := ZabbixJsonFormat{Data: []*SupervisorProcess{}}
 	for _, process := range processList {
-		fmt.Println("State: ", process.State, " Name: ", process.Name, " ExitStatus: ", process.ExitStatus, " Group: ",
-			process.ExitStatus)
+		n := &SupervisorProcess{
+			ProcessName:  process.Name,
+			ProcessGroup: process.Group,
+			ProcessPID:   process.Pid,
+		}
+
+		toZabbix.Data = append(toZabbix.Data, n)
 	}
+
+	b, err := json.Marshal(toZabbix)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	fmt.Println(string(b))
 }
