@@ -1,6 +1,9 @@
 package main
 
-import "github.com/abrander/go-supervisord"
+import (
+	"fmt"
+	"github.com/abrander/go-supervisord"
+)
 
 func discovery(supervisor *supervisord.Client) *ZBXFormat {
 	processList, err := supervisor.GetAllProcessInfo()
@@ -18,4 +21,15 @@ func discovery(supervisor *supervisord.Client) *ZBXFormat {
 	}
 
 	return zbx
+}
+
+func processState(supervisor *supervisord.Client, processName string) int {
+	info, err := supervisor.GetProcessInfo(processName)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	fmt.Printf("%+v\n", info)
+
+	return 1
 }

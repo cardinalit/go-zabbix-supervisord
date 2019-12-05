@@ -40,11 +40,15 @@ func main() {
 		if err != nil {
 			panic(err.Error())
 		}
+
+		fmt.Println(string(b))
 	case "state":
 		// TODO: added state command
-	default:
-		fmt.Println("No argument was passed. Type `help`")
-	}
+		ps := processState(supervisor, "67")
 
-	fmt.Println(string(b))
+		fmt.Println(ps)
+	default:
+		fmt.Println("No argument was passed or passed argument is incorrect.\n" +
+			"Type `-h | --help`")
+	}
 }
