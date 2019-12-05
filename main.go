@@ -44,7 +44,7 @@ func main() {
 		fmt.Println(string(b))
 	case "state":
 		// TODO: added state command
-		ps := processState(supervisor, "67")
+		ps := processState(supervisor, flag.Arg(1))
 
 		fmt.Println(ps)
 	default:
