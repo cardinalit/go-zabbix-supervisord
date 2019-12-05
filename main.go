@@ -8,21 +8,16 @@ import (
 	"os"
 )
 
-type ZabbixJsonFormat struct {
-	Data 	[]*SupervisorProcess	`json:"data"`
-}
-
-type SupervisorProcess struct {
-	ProcessName		string			`json:"{#PROCESS.NAME}"`
-	ProcessGroup	string			`json:"{#PROCESS.GROUP}"`
-	ProcessPID		int				`json:"{#PROCESS.PID}"`
-}
-
 var SupervisordSock = "/tmp/supervisor.sock"
 
 func main() {
+	var zbxData *ZBXFormat
+	var b []byte
+
 	flag.StringVar(&SupervisordSock, "sock", SupervisordSock, "The full path to the socket\n")
 	flag.Parse()
+
+	cmd := flag.Arg(0)
 
 	supervisor, err := supervisord.NewUnixSocketClient(SupervisordSock)
 	if err != nil {
@@ -30,30 +25,25 @@ func main() {
 	}
 
 	state, _ := supervisor.GetState()
-	if state.Code != supervisord.StateCodeRunning {
-		fmt.Println("supervisor is not running or the path to the socket is incorrect!")
-		os.Exit(1)
+	if state.Code != supervisord.StateCodeRunning && state.Name != supervisord.StateNameRunning  {
+		fmt.Println("supervisord is not running or path to socket is incorrect.\n" +
+			"You can type `help | -h | --help`")
+
+		os.Exit(0)
 	}
 
-	processList, err := supervisor.GetAllProcessInfo()
-	if err != nil {
-		panic(err.Error())
-	}
+	switch cmd {
+	case "discovery":
+		zbxData = discovery(supervisor)
 
-	toZabbix := ZabbixJsonFormat{Data: []*SupervisorProcess{}}
-	for _, process := range processList {
-		n := &SupervisorProcess{
-			ProcessName:  process.Name,
-			ProcessGroup: process.Group,
-			ProcessPID:   process.Pid,
+		b, err = json.Marshal(zbxData)
+		if err != nil {
+			panic(err.Error())
 		}
-
-		toZabbix.Data = append(toZabbix.Data, n)
-	}
-
-	b, err := json.Marshal(toZabbix)
-	if err != nil {
-		panic(err.Error())
+	case "state":
+		// TODO: added state command
+	default:
+		fmt.Println("No argument was passed. Type `help`")
 	}
 
 	fmt.Println(string(b))
