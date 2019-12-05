@@ -42,9 +42,9 @@ func main() {
 		}
 
 		fmt.Println(string(b))
-	case "state":
+	case "state.name":
 		// TODO: added state command
-		ps := processState(supervisor, flag.Arg(1))
+		ps := processStateName(supervisor, flag.Arg(1))
 
 		fmt.Println(ps)
 	default:
