@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<zabbix_export>
+    <version>4.4</version>
+    <date>2019-12-09T13:29:57Z</date>
+    <groups>
+        <group>
+            <name>Templates</name>
+        </group>
+        <group>
+            <name>Templates/Applications</name>
+        </group>
+    </groups>
+    <templates>
+        <template>
+            <template>template-app-supervisord</template>
+            <name>Template App Supervisor</name>
+            <groups>
+                <group>
+                    <name>Templates</name>
+                </group>
+                <group>
+                    <name>Templates/Applications</name>
+                </group>
+            </groups>
+            <applications>
+                <application>
+                    <name>Process state</name>
+                </application>
+                <application>
+                    <name>Status</name>
+                </application>
+            </applications>
+            <items>
+                <item>
+                    <name>Supervisor state</name>
+                    <key>supervisor.ping</key>
+                    <description>Current supervisord state</description>
+                    <applications>
+                        <application>
+                            <name>Status</name>
+                        </application>
+                    </applications>
+                </item>
+            </items>
+            <discovery_rules>
+                <discovery_rule>
+                    <name>Process discovery</name>
+                    <key>supervisor.process.discovery</key>
+                    <delay>1h</delay>
+                    <filter>
+                        <evaltype>AND</evaltype>
+                        <conditions>
+                            <condition>
+                                <macro>{#PROCESS.NAME}</macro>
+                                <formulaid>B</formulaid>
+                            </condition>
+                            <condition>
+                                <macro>{#PROCESS.GROUP}</macro>
+                                <formulaid>A</formulaid>
+                            </condition>
+                            <condition>
+                                <macro>{#PROCESS.PID}</macro>
+                                <formulaid>C</formulaid>
+                            </condition>
+                        </conditions>
+                    </filter>
+                    <description>LLD for all process running under supervisord</description>
+                    <item_prototypes>
+                        <item_prototype>
+                            <name>Process [pid:{#PROCESS.PID}] {#PROCESS.GROUP}:{#PROCESS.NAME} state name</name>
+                            <key>supervisor.process.statename[{#PROCESS.GROUP},{#PROCESS.NAME}]</key>
+                            <trends>0</trends>
+                            <value_type>TEXT</value_type>
+                            <description>Supervisor process state name</description>
+                            <applications>
+                                <application>
+                                    <name>Process state</name>
+                                </application>
+                            </applications>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{str(FATAL)}=1</expression>
+                                    <name>[FATAL] process [pid:{#PROCESS.PID}] {#PROCESS.GROUP}:{#PROCESS.NAME}</name>
+                                    <priority>WARNING</priority>
+                                    <description>supervisor process is FATAL state</description>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                    </item_prototypes>
+                </discovery_rule>
+            </discovery_rules>
+            <tags>
+                <tag>
+                    <tag>supervisor</tag>
+                </tag>
+                <tag>
+                    <tag>supervisord</tag>
+                </tag>
+            </tags>
+        </template>
+    </templates>
+</zabbix_export>
