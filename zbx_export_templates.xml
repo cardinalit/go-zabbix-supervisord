@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>4.4</version>
-    <date>2019-12-09T13:29:57Z</date>
+    <date>2019-12-12T09:12:35Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -33,7 +33,7 @@
             <items>
                 <item>
                     <name>Supervisor state</name>
-                    <key>supervisor.ping</key>
+                    <key>supervisor.ping[{$PATH.TO.SOCK}]</key>
                     <description>Current supervisord state</description>
                     <applications>
                         <application>
@@ -45,7 +45,7 @@
             <discovery_rules>
                 <discovery_rule>
                     <name>Process discovery</name>
-                    <key>supervisor.process.discovery</key>
+                    <key>supervisor.process.discovery[{$PATH.TO.SOCK}]</key>
                     <delay>1h</delay>
                     <filter>
                         <evaltype>AND</evaltype>
@@ -67,8 +67,40 @@
                     <description>LLD for all process running under supervisord</description>
                     <item_prototypes>
                         <item_prototype>
-                            <name>Process [pid:{#PROCESS.PID}] {#PROCESS.GROUP}:{#PROCESS.NAME} state name</name>
-                            <key>supervisor.process.statename[{#PROCESS.GROUP},{#PROCESS.NAME}]</key>
+                            <name>Ping {#PROCESS.PID}:{#PROCESS.GROUP}:{#PROCESS.NAME}</name>
+                            <key>supervisor.process.ping[{$PATH.TO.SOCK},{#PROCESS.PID}]</key>
+                            <delay>30s</delay>
+                            <description>Checking the process to work</description>
+                            <applications>
+                                <application>
+                                    <name>Process state</name>
+                                </application>
+                            </applications>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{last()}=0</expression>
+                                    <name>Process [{#PROCESS.PID}] does not exist anymore</name>
+                                    <priority>HIGH</priority>
+                                    <description>supervisor process does not exist anymore in OS</description>
+                                    <tags>
+                                        <tag>
+                                            <tag>ping</tag>
+                                            <value>false</value>
+                                        </tag>
+                                        <tag>
+                                            <tag>process</tag>
+                                            <value>{#PROCESS.PID}:{#PROCESS.GROUP}:{#PROCESS.NAME}</value>
+                                        </tag>
+                                        <tag>
+                                            <tag>supervisor</tag>
+                                        </tag>
+                                    </tags>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>Process {#PROCESS.PID}:{#PROCESS.GROUP}:{#PROCESS.NAME} state name</name>
+                            <key>supervisor.process.statename[{$PATH.TO.SOCK},{#PROCESS.GROUP},{#PROCESS.NAME}]</key>
                             <trends>0</trends>
                             <value_type>TEXT</value_type>
                             <description>Supervisor process state name</description>
@@ -80,9 +112,19 @@
                             <trigger_prototypes>
                                 <trigger_prototype>
                                     <expression>{str(FATAL)}=1</expression>
-                                    <name>[FATAL] process [pid:{#PROCESS.PID}] {#PROCESS.GROUP}:{#PROCESS.NAME}</name>
-                                    <priority>WARNING</priority>
+                                    <name>Process [pid:{#PROCESS.PID}] {#PROCESS.GROUP}:{#PROCESS.NAME}</name>
+                                    <priority>HIGH</priority>
                                     <description>supervisor process is FATAL state</description>
+                                    <tags>
+                                        <tag>
+                                            <tag>process</tag>
+                                            <value>{#PROCESS.GROUP}:{#PROCESS.NAME}</value>
+                                        </tag>
+                                        <tag>
+                                            <tag>state</tag>
+                                            <value>FATAL</value>
+                                        </tag>
+                                    </tags>
                                 </trigger_prototype>
                             </trigger_prototypes>
                         </item_prototype>
@@ -97,6 +139,13 @@
                     <tag>supervisord</tag>
                 </tag>
             </tags>
+            <macros>
+                <macro>
+                    <macro>{$PATH.TO.SOCK}</macro>
+                    <value>/var/run/supervisor.sock</value>
+                    <description>Full path to supervisor socket</description>
+                </macro>
+            </macros>
         </template>
     </templates>
 </zabbix_export>
