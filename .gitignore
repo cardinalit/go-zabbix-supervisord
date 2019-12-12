@@ -1,7 +1,7 @@
 *.tmp
 *.swp
 
-tmp
+build
 
 .idea
 .DS_Store

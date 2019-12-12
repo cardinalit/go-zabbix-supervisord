@@ -2,6 +2,8 @@ package main
 
 import (
 	"github.com/abrander/go-supervisord"
+	"os"
+	"syscall"
 )
 
 func discovery(supervisor *supervisord.Client) *ZBXFormat {
@@ -22,11 +24,22 @@ func discovery(supervisor *supervisord.Client) *ZBXFormat {
 	return zbx
 }
 
-func processStateName(supervisor *supervisord.Client, processName string) string {
+func psStateName(supervisor *supervisord.Client, processName string) string {
 	info, err := supervisor.GetProcessInfo(processName)
 	if err != nil {
 		panic(err.Error())
 	}
 
 	return info.StateName
+}
+
+func psPing(pid int64) uint {
+	ps, _ := os.FindProcess(int(pid))
+	err   := ps.Signal(syscall.Signal(0))
+
+	if err == nil {
+		return 1
+	}
+
+	return 0
 }
