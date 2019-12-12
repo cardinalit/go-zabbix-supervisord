@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/abrander/go-supervisord"
 	"os"
+	"strconv"
 )
 
 var SupervisordSock = "/tmp/supervisor.sock"
@@ -27,7 +28,7 @@ func main() {
 	state, _ := supervisor.GetState()
 	if state.Code != supervisord.StateCodeRunning && state.Name != supervisord.StateNameRunning  {
 		fmt.Println("supervisord is not running or path to socket is incorrect.\n" +
-			"You can type `help | -h | --help`")
+			"You can type `-h | --help`")
 
 		os.Exit(0)
 	}
@@ -43,10 +44,18 @@ func main() {
 
 		fmt.Println(string(b))
 	case "state.name":
-		// TODO: added state command
-		ps := processStateName(supervisor, flag.Arg(1))
+		ps := psStateName(supervisor, flag.Arg(1))
 
 		fmt.Println(ps)
+	case "process.ping":
+		pid, err := strconv.ParseInt(flag.Arg(1), 10, 64)
+		if err != nil {
+			fmt.Printf("%v\n", err)
+			os.Exit(1)
+		}
+
+		status := psPing(pid)
+		fmt.Println(status)
 	default:
 		fmt.Println("No argument was passed or passed argument is incorrect.\n" +
 			"Type `-h | --help`")
